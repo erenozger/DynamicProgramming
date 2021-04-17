@@ -1,31 +1,37 @@
-public class Assignment implements Comparable {
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+
+public class Assignment implements Comparable<Assignment> {
     private String name;
     private String start;
     private int duration;
     private int importance;
     private boolean maellard;
 
+
     /*
-        Getter methods
-     */
+            Getter methods
+         */
     public String getName() {
-        return null;
+        return name;
     }
 
     public String getStartTime() {
-        return null;
+        return start;
     }
 
     public int getDuration() {
-        return 0;
+        return duration;
     }
 
     public int getImportance() {
-        return 0;
+        return importance;
     }
 
     public boolean isMaellard() {
-        return false;
+        return maellard;
     }
 
     /**
@@ -34,7 +40,23 @@ public class Assignment implements Comparable {
      * @return calculated finish time as String
      */
     public String getFinishTime() {
-        return null;
+        /*Date format is determined,
+        then Start time and date are created and the deadline is determined by adding the time.
+        Converts and returns the last date to hour and minute types by splitting. */
+        SimpleDateFormat df = new SimpleDateFormat("HH:mm");
+        try {
+            Date d = df.parse(this.getStartTime());
+            Calendar gc = new GregorianCalendar();
+            gc.setTime(d);
+            gc.add(Calendar.HOUR, this.getDuration());
+            Date d2 = gc.getTime();
+            String[] splitDate = d2.toString().split(" ");
+            String[] splitHour = splitDate[3].split(":");
+            return splitHour[0] + ":" + splitHour[1];
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
@@ -43,7 +65,7 @@ public class Assignment implements Comparable {
      * @return calculated weight
      */
     public double getWeight() {
-        return 0;
+        return (double) this.getImportance() * (this.isMaellard() ? 1001 : 1) / this.getDuration();
     }
 
     /**
@@ -55,8 +77,8 @@ public class Assignment implements Comparable {
      * If self < object, return < 0 (e.g. -1)
      */
     @Override
-    public int compareTo(Object o) {
-        return 0;
+    public int compareTo(Assignment o) {
+        return this.getFinishTime().compareTo(o.getFinishTime());
     }
 
     /**
@@ -65,6 +87,7 @@ public class Assignment implements Comparable {
      */
     @Override
     public String toString() {
-        return null;
+        return "Assignment{name='" + getName() + "', start='" + getStartTime() + "', duration=" + getDuration() + ", importance=" + getImportance() +
+                ", maellard=" + isMaellard() + ", finish='" + getFinishTime() + "', weight=" + getWeight() + "}";
     }
 }
