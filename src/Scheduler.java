@@ -5,7 +5,9 @@ public class Scheduler {
     private Assignment[] assignmentArray;
     private Integer[] C;
     private Double[] max;
-    private ArrayList<Assignment> solutionDynamic;
+
+
+    private ArrayList<Assignment> solutionDynamic = new ArrayList<Assignment>();
     private ArrayList<Assignment> solutionGreedy;
 
     /**
@@ -14,10 +16,13 @@ public class Scheduler {
     public Scheduler(Assignment[] assignmentArray) throws IllegalArgumentException {
         // Should be instantiated with an Assignment array
         // All the properties of this class should be initialized here
-        if(assignmentArray.length == 0){
+        if (assignmentArray.length == 0) {
             throw new IllegalArgumentException("Assignment Array is empty");
-        }else{
+        } else {
+
             this.assignmentArray = assignmentArray;
+            this.max = new Double[this.assignmentArray.length];
+            this.C = new Integer[this.assignmentArray.length];
             this.calculateC();
         }
 
@@ -31,13 +36,13 @@ public class Scheduler {
      */
     private int binarySearch(int index) {
         String indexStartingTime = this.assignmentArray[index].getStartTime();
-        if(index >= 1 ){
+        if (index >= 1) {
             int first = 0;
             int last = index - 1;
-            while(first <= last){
-                if(indexStartingTime.compareTo(this.assignmentArray[last].getFinishTime())>= 0){
+            while (first <= last) {
+                if (indexStartingTime.compareTo(this.assignmentArray[last].getFinishTime()) >= 0) {
                     return last;
-                }else{
+                } else {
                     last--;
                 }
             }
@@ -55,11 +60,7 @@ public class Scheduler {
             finalC[i] = binarySearch(i);
         }
         this.C = finalC;
-//        for(int j = 0 ; j<this.C.length ; j++){
-//            System.out.println(C[j]);
-//        }
     }
-
 
     /**
      * Uses {@link #assignmentArray} property
@@ -67,7 +68,18 @@ public class Scheduler {
      * @return Returns a list of scheduled assignments
      */
     public ArrayList<Assignment> scheduleDynamic() {
-        return null;
+
+        if(this.assignmentArray.length >= 1){
+            for (int i = this.assignmentArray.length - 1; i >= 0; i--) {
+                if(max[i] == null)
+                    calculateMax(i);
+            }
+        }
+
+        findSolutionDynamic(this.assignmentArray.length-1);
+
+
+        return this.solutionDynamic;
     }
 
     /**
@@ -75,14 +87,51 @@ public class Scheduler {
      */
     private void findSolutionDynamic(int i) {
 
+        if(i != -1 ){
+            System.out.println("findSolutionDynamic("+i+")");
+
+            if(i==0){
+                this.solutionDynamic.add(this.assignmentArray[i]);
+                System.out.println("Adding " + this.assignmentArray[i] + " to the dynamic schedule");
+            }else{
+
+                if(this.max[i] > this.max[i-1]){
+                    Assignment assignment = this.assignmentArray[i];
+                    this.solutionDynamic.add(assignment);
+                    System.out.println("Adding " + this.assignmentArray[i] + " to the dynamic schedule");
+                    findSolutionDynamic(C[i]);
+                }else{
+                    findSolutionDynamic(i-1);
+                }
+            }
+        }
     }
 
     /**
      * {@link #max} must be filled after calling this method
      */
     private Double calculateMax(int i) {
-        return null;
+        if (i < 0) {
+            return 0.0;
+        } else if (i == 0) {
+            System.out.println("calculateMax(" + i + "): " + "Zero");
+            if(assignmentArray.length>0){
+                max[i] = assignmentArray[i].getWeight();
+                return max[i];
+            }else
+                return 0.0;
+        } else if (max[i] != null) {
+            System.out.println("calculateMax(" + i + "): " + "Present");
+            return max[i];
+        } else {
+            System.out.println("calculateMax(" + i + "): " + "Prepare");
+            max[i] = Math.max(assignmentArray[i].getWeight() + calculateMax(C[i]),calculateMax(i - 1));
+            return max[i];
+        }
+
+
     }
+
 
     /**
      * {@link #solutionGreedy} must be filled after calling this method
@@ -91,6 +140,21 @@ public class Scheduler {
      * @return Returns a list of scheduled assignments
      */
     public ArrayList<Assignment> scheduleGreedy() {
-        return null;
+        ArrayList<Assignment> scheduledArrayList = new ArrayList<Assignment>();
+        int lastAddedAssignmentIndex = 0;
+        for (int i = 0; i < this.assignmentArray.length; i++) {
+            if (i == 0) {
+                scheduledArrayList.add(this.assignmentArray[i]);
+                System.out.println("Adding " + this.assignmentArray[i] + " to the greedy schedule");
+                lastAddedAssignmentIndex = i;
+            } else {
+                if (this.assignmentArray[i].getStartTime().compareTo(this.assignmentArray[lastAddedAssignmentIndex].getFinishTime()) >= 0) {
+                    scheduledArrayList.add(this.assignmentArray[i]);
+                    System.out.println("Adding " + this.assignmentArray[i] + " to the greedy schedule");
+                    lastAddedAssignmentIndex = i;
+                }
+            }
+        }
+        return scheduledArrayList;
     }
 }

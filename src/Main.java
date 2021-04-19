@@ -16,8 +16,8 @@ public class Main {
         try{
             PrintStream o = new PrintStream(new File("output.txt"));
             System.setOut(o);
-        }catch (IOException ex){
-            System.out.println("Error writing file '" + "output.txt" + "'");
+        }catch (IOException e){
+            e.printStackTrace();
         }
         try {
             inputJsonFile = args[0];
@@ -29,18 +29,14 @@ public class Main {
             assignments = readFile(inputJsonFile);
             if(assignments != null){
                 Arrays.sort(assignments);
-                for(Assignment assignment:assignments){
-                    System.out.println(assignment);
-                }
-
                 Scheduler scheduler = new Scheduler(assignments);
-
-
-
+                ArrayList<Assignment> solutionDynamicResult = scheduler.scheduleDynamic();
+                Collections.reverse(solutionDynamicResult);
+                writeOutput("solution_dynamic.json",solutionDynamicResult);
+                ArrayList<Assignment> solutionGreedy = scheduler.scheduleGreedy();
+                writeOutput("solution_greedy.json",solutionGreedy);
             }
-
         }
-
     }
 
     /**
@@ -59,12 +55,11 @@ public class Main {
             bufferedReader.close();
             return assignmentArray;
 
-        } catch (FileNotFoundException ex) {
-            System.out.println("Unable to open file '" + filename + "'");
-        } catch (IOException ex) {
-            System.out.println("Error reading file '" + filename + "'");
+        }catch (IOException e) {
+            throw new FileNotFoundException("File not found");
+        } catch(IllegalArgumentException exc){
+            throw new IllegalArgumentException("bad input file", exc);
         }
-        return null;
     }
 
     /**
@@ -73,6 +68,16 @@ public class Main {
      * @throws IOException If something goes wrong with file creation
      */
     private static void writeOutput(String filename, ArrayList<Assignment> arrayList) throws IOException {
+        Gson gson = new Gson();
+        try {
+            String json = gson.toJson(arrayList);
+            FileWriter writer = new FileWriter(filename);
+            writer.write(json);
+            writer.close();
+
+        } catch (IOException e) {
+            throw new IOException("Written output to nonexistent file");
+        }
 
     }
 }
